@@ -1,21 +1,32 @@
-# 🎮 宅力觉醒智能体 - 2.0
-
-English | [中文](./README_zh.md) | [日本語](./README_ja.md) | [Français](./README_fr.md) | [Русский](./README_ru.md)
+# 🎮 宅力觉醒智能体
 
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](./backend/pyproject.toml)
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)](./Makefile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-宅力觉醒智能体 is an open-source **super agent harness** that orchestrates **sub-agents**, **memory**, and **sandboxes** to do almost anything — powered by **extensible skills**.
+一个能真正帮你做事的AI助手。不只是聊天，而是像人一样思考、分解任务、执行操作。
+
+**它能做什么：**
+
+- 复杂研究任务：自动搜索、整理、生成报告
+- 智能家居控制：集成Home Assistant，自动化你的家
+- 代码开发：理解需求、编写代码、调试运行
+- 数据处理：分析文件、生成图表、自动化工作流
+
+**核心优势：**
+
+- 真正的"记忆"：记得你的偏好，越用越懂你
+- 独立工作空间：安全隔离，不会搞乱你的电脑
+- 多智能体协作：就像有个团队在帮你做事
 
 ## ✨ 核心特性
 
-- 🤖 **多智能体协作** - 复杂任务自动分解，并行处理
-- 🧠 **长期记忆** - 跨会话学习用户偏好和工作模式
-- 🔧 **沙盒执行** - 安全的隔离环境，真实的文件系统操作
-- 🎯 **可扩展技能** - 内置丰富技能，支持自定义扩展
-- 🔌 **MCP 集成** - 支持模型上下文协议服务器
-- 💬 **多渠道接入** - Telegram、Slack、飞书等即时通讯集成
+- **多智能体协作** - 复杂任务自动分解，并行处理
+- **长期记忆** - 跨会话学习用户偏好和工作模式
+- **沙盒执行** - 安全的隔离环境，真实的文件系统操作
+- **可扩展技能** - 内置丰富技能，支持自定义扩展
+- **MCP 集成** - 支持模型上下文协议服务器
+- **多渠道接入** - Telegram、Slack、飞书等即时通讯集成
 
 ## 🚀 快速开始
 
