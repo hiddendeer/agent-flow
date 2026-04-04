@@ -1,0 +1,109 @@
+# 宅力觉醒智能体 Backend Only - Production Environment
+# 简化版：仅包含核心后端服务
+# Services:
+#   - gateway:     FastAPI Gateway API
+#   - langgraph:   LangGraph production server
+
+services:
+  # ── Gateway API ────────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      args:
+        - APT_MIRROR=mirrors.tencentyun.com
+        - UV_IMAGE=ghcr.nju.edu.cn/astral-sh/uv:0.7.20
+    image: docker-gateway:latest
+    container_name: deer-flow-gateway
+    ports:
+      - "8001:8001"
+    # 显式指定配置文件路径
+    command: sh -c "cd backend && DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
+    volumes:
+      - ../config.yaml:/app/backend/config.yaml:ro
+      - ../extensions_config.json:/app/backend/extensions_config.json:ro
+      - ../skills:/app/skills:ro
+      - ../backend/.deer-flow:/app/backend/.deer-flow
+    working_dir: /app
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
+      - DEER_FLOW_CHANNELS_LANGGRAPH_URL=http://langgraph:2024
+      - DEER_FLOW_CHANNELS_GATEWAY_URL=http://gateway:8001
+      - UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DISABLE_VECTOR_STORE=true
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ── LangGraph Server ───────────────────────────────────────────────────────
+  langgraph:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      args:
+        - APT_MIRROR=mirrors.tencentyun.com
+        - UV_IMAGE=ghcr.nju.edu.cn/astral-sh/uv:0.7.20
+    image: docker-langgraph:latest
+    container_name: deer-flow-langgraph
+    ports:
+      - "2024:2024"
+    command: sh -c "cd /app/backend && DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker 10"
+    volumes:
+      - ../config.yaml:/app/backend/config.yaml:ro
+      - ../extensions_config.json:/app/backend/extensions_config.json:ro
+      - ../backend/.deer-flow:/app/backend/.deer-flow
+      - ../skills:/app/skills:ro
+      - ../backend/.langgraph_api:/app/backend/.langgraph_api
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
+      - UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2024/ok"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+networks:
+  deer-flow:
+    driver: bridge

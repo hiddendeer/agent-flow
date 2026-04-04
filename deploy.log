@@ -1,0 +1,67 @@
+[0;34mDEER_FLOW_HOME=/e/EMS/agent-flow/backend/.deer-flow[0m
+[0;32m✓ config.yaml: /e/EMS/agent-flow/config.yaml[0m
+[0;32m✓ extensions_config.json: /e/EMS/agent-flow/extensions_config.json[0m
+==========================================
+  DeerFlow Production Deployment
+==========================================
+
+[0;34mSandbox mode: local[0m
+
+Building images and starting containers...
+
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+2026/04/03 22:57:12 http2: server: error reading preface from client //./pipe/dockerDesktopLinuxEngine: file has already been closed
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [frontend internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.45kB done
+#1 DONE 0.0s
+
+#2 [langgraph internal] load build definition from Dockerfile
+#2 transferring dockerfile: 2.03kB done
+#2 DONE 0.0s
+
+#3 [gateway internal] load build definition from Dockerfile
+#3 transferring dockerfile: 2.03kB done
+#3 DONE 0.0s
+
+#4 [gateway internal] load metadata for docker.io/library/docker:cli
+#4 ...
+
+#5 [langgraph auth] library/python:pull token for registry-1.docker.io
+#5 DONE 0.0s
+
+#6 [frontend auth] library/node:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#7 [langgraph auth] library/docker:pull token for registry-1.docker.io
+#7 DONE 0.0s
+
+#8 [gateway internal] load metadata for ghcr.io/astral-sh/uv:0.7.20
+#8 DONE 5.1s
+
+#9 [gateway internal] load metadata for docker.io/library/python:3.12-slim-bookworm
+#9 ...
+
+#10 [frontend internal] load metadata for docker.io/library/node:22-alpine
+#10 ...
+
+#9 [langgraph internal] load metadata for docker.io/library/python:3.12-slim-bookworm
+#9 ERROR: failed to do request: Head "https://docker.mirrors.ustc.edu.cn/v2/library/python/manifests/3.12-slim-bookworm?ns=docker.io": EOF
+
+#10 [frontend internal] load metadata for docker.io/library/node:22-alpine
+#10 ERROR: failed to do request: Head "https://docker.mirrors.ustc.edu.cn/v2/library/node/manifests/22-alpine?ns=docker.io": EOF
+
+#4 [langgraph internal] load metadata for docker.io/library/docker:cli
+#4 ERROR: failed to do request: Head "https://docker.mirrors.ustc.edu.cn/v2/library/docker/manifests/cli?ns=docker.io": EOF
+------
+ > [frontend internal] load metadata for docker.io/library/node:22-alpine:
+------
+------
+ > [langgraph internal] load metadata for docker.io/library/docker:cli:
+------
+------
+ > [gateway internal] load metadata for docker.io/library/python:3.12-slim-bookworm:
+------
+failed to solve: node:22-alpine: failed to resolve source metadata for docker.io/library/node:22-alpine: failed to do request: Head "https://docker.mirrors.ustc.edu.cn/v2/library/node/manifests/22-alpine?ns=docker.io": EOF

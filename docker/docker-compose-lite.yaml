@@ -1,0 +1,155 @@
+# DeerFlow Lightweight Configuration
+# This is a minimal configuration for API-only usage without frontend UI
+# Usage: docker-compose -f docker-compose-lite.yaml up --build
+#
+# Services:
+#   - nginx: Reverse proxy (port 2026) - OPTIONAL, can be disabled
+#   - gateway: Backend Gateway API (port 8001) - REQUIRED
+#   - langgraph: LangGraph server (port 2024) - REQUIRED
+#
+# Disabled services (compared to docker-compose-dev.yaml):
+#   - frontend: Frontend UI not needed for API-only usage
+#   - provisioner: Not needed when sandbox tools are disabled
+#
+# Access:
+#   - With nginx: http://localhost:2026
+#   - Without nginx: http://localhost:8001 (Gateway), http://localhost:2024 (LangGraph)
+
+services:
+  # ── Reverse Proxy (OPTIONAL) ──────────────────────────────────────────────
+  # Routes API traffic to gateway/langgraph
+  # Comment out this service if you want to access Gateway and LangGraph directly
+  nginx:
+    image: nginx:alpine
+    container_name: deer-flow-nginx
+    ports:
+      - "2026:2026"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - gateway
+      - langgraph
+    networks:
+      - deer-flow-lite
+    restart: unless-stopped
+
+  # Backend - Gateway API (REQUIRED)
+  gateway:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+      args:
+        APT_MIRROR: ${APT_MIRROR:-}
+        UV_IMAGE: ${UV_IMAGE:-ghcr.io/astral-sh/uv:0.7.20}
+        UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.org/simple}
+    container_name: deer-flow-gateway
+    command: sh -c "cd backend && uv sync && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --reload --reload-include='*.yaml .env' > /app/logs/gateway.log 2>&1"
+    volumes:
+      - ../backend/:/app/backend/
+      - gateway-venv:/app/backend/.venv
+      - ../config.yaml:/app/config.yaml
+      - ../extensions_config.json:/app/extensions_config.json
+      - ../skills:/app/skills
+      - ../logs:/app/logs
+      - ~/.cache/uv:/root/.cache/uv
+      # Docker socket for potential sandbox usage (minimal impact when disabled)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # CLI auth directories for auto-auth
+      - type: bind
+        source: ${HOME:?HOME must be set}/.claude
+        target: /root/.claude
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${HOME:?HOME must be set}/.codex
+        target: /root/.codex
+        read_only: true
+        bind:
+          create_host_path: true
+    working_dir: /app
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CHANNELS_LANGGRAPH_URL=${DEER_FLOW_CHANNELS_LANGGRAPH_URL:-http://langgraph:2024}
+      - DEER_FLOW_CHANNELS_GATEWAY_URL=${DEER_FLOW_CHANNELS_GATEWAY_URL:-http://gateway:8001}
+      - DEER_FLOW_HOST_BASE_DIR=${DEER_FLOW_ROOT}/backend/.deer-flow
+      - DEER_FLOW_HOST_SKILLS_PATH=${DEER_FLOW_ROOT}/skills
+      - DEER_FLOW_SANDBOX_HOST=host.docker.internal
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow-lite
+    restart: unless-stopped
+    # Expose port directly for access without nginx
+    expose:
+      - "8001"
+    ports:
+      - "8001:8001"
+
+  # Backend - LangGraph Server (REQUIRED)
+  langgraph:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+      args:
+        APT_MIRROR: ${APT_MIRROR:-}
+        UV_IMAGE: ${UV_IMAGE:-ghcr.io/astral-sh/uv:0.7.20}
+        UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.org/simple}
+    container_name: deer-flow-langgraph
+    command: sh -c "cd backend && uv sync && uv run langgraph dev --no-browser --allow-blocking --host 0.0.0.0 --port 2024 --n-jobs-per-worker 10 > /app/logs/langgraph.log 2>&1"
+    volumes:
+      - ../backend/:/app/backend/
+      - langgraph-venv:/app/backend/.venv
+      - ../config.yaml:/app/config.yaml
+      - ../extensions_config.json:/app/extensions_config.json
+      - ../skills:/app/skills
+      - ../logs:/app/logs
+      - ~/.cache/uv:/root/.cache/uv
+      # Docker socket for potential sandbox usage (minimal impact when disabled)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # CLI auth directories for auto-auth
+      - type: bind
+        source: ${HOME:?HOME must be set}/.claude
+        target: /root/.claude
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${HOME:?HOME must be set}/.codex
+        target: /root/.codex
+        read_only: true
+        bind:
+          create_host_path: true
+    working_dir: /app
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_HOST_BASE_DIR=${DEER_FLOW_ROOT}/backend/.deer-flow
+      - DEER_FLOW_HOST_SKILLS_PATH=${DEER_FLOW_ROOT}/skills
+      - DEER_FLOW_SANDBOX_HOST=host.docker.internal
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow-lite
+    restart: unless-stopped
+    # Expose port directly for access without nginx
+    expose:
+      - "2024"
+    ports:
+      - "2024:2024"
+
+volumes:
+  gateway-venv:
+  langgraph-venv:
+
+networks:
+  deer-flow-lite:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.201.0/24

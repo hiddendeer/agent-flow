@@ -1,0 +1,80 @@
+# DeerFlow Simplified Environment (Gateway + LangGraph Agent Layer)
+# 去掉了 Sandbox (Provisioner) 和 WebUI (Frontend/Nginx)
+# 
+# Usage:
+#   docker-compose -f docker/docker-compose-simple.yaml up --build -d
+
+services:
+  # ── Gateway API ────────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile.simple
+      args:
+        APT_MIRROR: ${APT_MIRROR:-mirrors.aliyun.com}
+        UV_IMAGE: ${UV_IMAGE:-enterprise-public-cn-beijing.cr.volces.com/vefaas-public/uv:0.7.20}
+        UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    container_name: deer-flow-gateway
+    ports:
+      - "8001:8001"
+    command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
+    volumes:
+      - ${DEER_FLOW_CONFIG_PATH:-../config.yaml}:/app/backend/config.yaml:ro
+      - ${DEER_FLOW_EXTENSIONS_CONFIG_PATH:-../extensions_config.json}:/app/backend/extensions_config.json:ro
+      - ../skills:/app/skills:ro
+      - ${DEER_FLOW_HOME:-../backend/.deer-flow}:/app/backend/.deer-flow
+    working_dir: /app
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CHANNELS_LANGGRAPH_URL=${DEER_FLOW_CHANNELS_LANGGRAPH_URL:-http://langgraph:2024}
+      - DEER_FLOW_CHANNELS_GATEWAY_URL=${DEER_FLOW_CHANNELS_GATEWAY_URL:-http://gateway:8001}
+      - DEER_FLOW_HOST_BASE_DIR=${DEER_FLOW_HOME:-./backend/.deer-flow}
+      - DEER_FLOW_HOST_SKILLS_PATH=${DEER_FLOW_REPO_ROOT:-.}/skills
+      - DEER_FLOW_SANDBOX_HOST=host.docker.internal
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+  # ── LangGraph Server ───────────────────────────────────────────────────────
+  langgraph:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile.simple
+      args:
+        APT_MIRROR: ${APT_MIRROR:-mirrors.aliyun.com}
+        UV_IMAGE: ${UV_IMAGE:-enterprise-public-cn-beijing.cr.volces.com/vefaas-public/uv:0.7.20}
+        UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    container_name: deer-flow-langgraph
+    ports:
+      - "2024:2024"
+    command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker 10"
+    volumes:
+      - ${DEER_FLOW_CONFIG_PATH:-../config.yaml}:/app/backend/config.yaml:ro
+      - ${DEER_FLOW_EXTENSIONS_CONFIG_PATH:-../extensions_config.json}:/app/backend/extensions_config.json:ro
+      - ${DEER_FLOW_HOME:-../backend/.deer-flow}:/app/backend/.deer-flow
+      - ../skills:/app/skills:ro
+      - ../backend/.langgraph_api:/app/backend/.langgraph_api
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
+      - DEER_FLOW_HOST_BASE_DIR=${DEER_FLOW_HOME:-./backend/.deer-flow}
+      - DEER_FLOW_HOST_SKILLS_PATH=${DEER_FLOW_REPO_ROOT:-.}/skills
+      - DEER_FLOW_SANDBOX_HOST=host.docker.internal
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+networks:
+  deer-flow:
+    driver: bridge
