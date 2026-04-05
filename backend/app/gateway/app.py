@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     Returns:
         Configured FastAPI application instance.
     """
+    config = get_gateway_config()
 
     app = FastAPI(
         title="DeerFlow API 网关",
@@ -104,9 +105,9 @@ LangGraph 请求由 nginx 反向代理处理。
         """,
         version="0.1.0",
         lifespan=lifespan,
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        docs_url="/docs" if config.docs_enabled else None,
+        redoc_url="/redoc" if config.docs_enabled else None,
+        openapi_url="/openapi.json" if config.docs_enabled else None,
         openapi_tags=[
             {
                 "name": "models",
