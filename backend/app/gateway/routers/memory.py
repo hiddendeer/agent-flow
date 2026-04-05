@@ -20,8 +20,8 @@ router = APIRouter(prefix="/api", tags=["memory"])
 class ContextSection(BaseModel):
     """Model for context sections (user and history)."""
 
-    summary: str = Field(default="", description="Summary content")
-    updatedAt: str = Field(default="", description="Last update timestamp")
+    summary: str = Field(default="", description="摘要内容")
+    updatedAt: str = Field(default="", description="最后更新时间戳")
 
 
 class UserContext(BaseModel):
@@ -43,20 +43,20 @@ class HistoryContext(BaseModel):
 class Fact(BaseModel):
     """Model for a memory fact."""
 
-    id: str = Field(..., description="Unique identifier for the fact")
-    content: str = Field(..., description="Fact content")
-    category: str = Field(default="context", description="Fact category")
-    confidence: float = Field(default=0.5, description="Confidence score (0-1)")
-    createdAt: str = Field(default="", description="Creation timestamp")
-    source: str = Field(default="unknown", description="Source thread ID")
-    sourceError: str | None = Field(default=None, description="Optional description of the prior mistake or wrong approach")
+    id: str = Field(..., description="事实的唯一标识符")
+    content: str = Field(..., description="事实内容")
+    category: str = Field(default="context", description="事实类别")
+    confidence: float = Field(default=0.5, description="置信度评分 (0-1)")
+    createdAt: str = Field(default="", description="创建时间戳")
+    source: str = Field(default="unknown", description="来源线程 ID")
+    sourceError: str | None = Field(default=None, description="可选的先前错误或错误方法的描述")
 
 
 class MemoryResponse(BaseModel):
     """Response model for memory data."""
 
-    version: str = Field(default="1.0", description="Memory schema version")
-    lastUpdated: str = Field(default="", description="Last update timestamp")
+    version: str = Field(default="1.0", description="记忆架构版本")
+    lastUpdated: str = Field(default="", description="最后更新时间戳")
     user: UserContext = Field(default_factory=UserContext)
     history: HistoryContext = Field(default_factory=HistoryContext)
     facts: list[Fact] = Field(default_factory=list)
@@ -74,29 +74,29 @@ def _map_memory_fact_value_error(exc: ValueError) -> HTTPException:
 class FactCreateRequest(BaseModel):
     """Request model for creating a memory fact."""
 
-    content: str = Field(..., min_length=1, description="Fact content")
-    category: str = Field(default="context", description="Fact category")
-    confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="Confidence score (0-1)")
+    content: str = Field(..., min_length=1, description="事实内容")
+    category: str = Field(default="context", description="事实类别")
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="置信度评分 (0-1)")
 
 
 class FactPatchRequest(BaseModel):
     """PATCH request model that preserves existing values for omitted fields."""
 
-    content: str | None = Field(default=None, min_length=1, description="Fact content")
-    category: str | None = Field(default=None, description="Fact category")
-    confidence: float | None = Field(default=None, ge=0.0, le=1.0, description="Confidence score (0-1)")
+    content: str | None = Field(default=None, min_length=1, description="事实内容")
+    category: str | None = Field(default=None, description="事实类别")
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0, description="置信度评分 (0-1)")
 
 
 class MemoryConfigResponse(BaseModel):
     """Response model for memory configuration."""
 
-    enabled: bool = Field(..., description="Whether memory is enabled")
-    storage_path: str = Field(..., description="Path to memory storage file")
-    debounce_seconds: int = Field(..., description="Debounce time for memory updates")
-    max_facts: int = Field(..., description="Maximum number of facts to store")
-    fact_confidence_threshold: float = Field(..., description="Minimum confidence threshold for facts")
-    injection_enabled: bool = Field(..., description="Whether memory injection is enabled")
-    max_injection_tokens: int = Field(..., description="Maximum tokens for memory injection")
+    enabled: bool = Field(..., description="记忆是否已启用")
+    storage_path: str = Field(..., description="记忆存储文件的路径")
+    debounce_seconds: int = Field(..., description="记忆更新的防抖时间")
+    max_facts: int = Field(..., description="要存储的最大事实数量")
+    fact_confidence_threshold: float = Field(..., description="事实的最小置信度阈值")
+    injection_enabled: bool = Field(..., description="是否启用记忆注入")
+    max_injection_tokens: int = Field(..., description="记忆注入的最大 Token 数")
 
 
 class MemoryStatusResponse(BaseModel):
@@ -110,8 +110,8 @@ class MemoryStatusResponse(BaseModel):
     "/memory",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Get Memory Data",
-    description="Retrieve the current global memory data including user context, history, and facts.",
+    summary="获取记忆数据",
+    description="检索当前的全局记忆数据，包括用户上下文、历史记录和事实。",
 )
 async def get_memory() -> MemoryResponse:
     """Get the current global memory data.
@@ -155,8 +155,8 @@ async def get_memory() -> MemoryResponse:
     "/memory/reload",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Reload Memory Data",
-    description="Reload memory data from the storage file, refreshing the in-memory cache.",
+    summary="重新加载记忆数据",
+    description="从存储文件重新加载记忆数据，刷新内存缓存。",
 )
 async def reload_memory() -> MemoryResponse:
     """Reload memory data from file.
@@ -175,8 +175,8 @@ async def reload_memory() -> MemoryResponse:
     "/memory",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Clear All Memory Data",
-    description="Delete all saved memory data and reset the memory structure to an empty state.",
+    summary="清除所有记忆数据",
+    description="删除所有保存的记忆数据，并将记忆结构重置为空状态。",
 )
 async def clear_memory() -> MemoryResponse:
     """Clear all persisted memory data."""
@@ -192,8 +192,8 @@ async def clear_memory() -> MemoryResponse:
     "/memory/facts",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Create Memory Fact",
-    description="Create a single saved memory fact manually.",
+    summary="创建记忆事实",
+    description="手动创建一个保存的记忆事实。",
 )
 async def create_memory_fact_endpoint(request: FactCreateRequest) -> MemoryResponse:
     """Create a single fact manually."""
@@ -215,8 +215,8 @@ async def create_memory_fact_endpoint(request: FactCreateRequest) -> MemoryRespo
     "/memory/facts/{fact_id}",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Delete Memory Fact",
-    description="Delete a single saved memory fact by its fact id.",
+    summary="删除记忆事实",
+    description="根据事实 ID 删除单个保存的记忆事实。",
 )
 async def delete_memory_fact_endpoint(fact_id: str) -> MemoryResponse:
     """Delete a single fact from memory by fact id."""
@@ -234,8 +234,8 @@ async def delete_memory_fact_endpoint(fact_id: str) -> MemoryResponse:
     "/memory/facts/{fact_id}",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Patch Memory Fact",
-    description="Partially update a single saved memory fact by its fact id while preserving omitted fields.",
+    summary="更新记忆事实",
+    description="根据事实 ID 部分更新单个保存的记忆事实，同时保留省略的字段。",
 )
 async def update_memory_fact_endpoint(fact_id: str, request: FactPatchRequest) -> MemoryResponse:
     """Partially update a single fact manually."""
@@ -260,8 +260,8 @@ async def update_memory_fact_endpoint(fact_id: str, request: FactPatchRequest) -
     "/memory/export",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Export Memory Data",
-    description="Export the current global memory data as JSON for backup or transfer.",
+    summary="导出记忆数据",
+    description="将当前的全局记忆数据导出为 JSON，用于备份或传输。",
 )
 async def export_memory() -> MemoryResponse:
     """Export the current memory data."""
@@ -273,8 +273,8 @@ async def export_memory() -> MemoryResponse:
     "/memory/import",
     response_model=MemoryResponse,
     response_model_exclude_none=True,
-    summary="Import Memory Data",
-    description="Import and overwrite the current global memory data from a JSON payload.",
+    summary="导入记忆数据",
+    description="从 JSON 载荷中导入并覆盖当前的全局记忆数据。",
 )
 async def import_memory(request: MemoryResponse) -> MemoryResponse:
     """Import and persist memory data."""
@@ -289,8 +289,8 @@ async def import_memory(request: MemoryResponse) -> MemoryResponse:
 @router.get(
     "/memory/config",
     response_model=MemoryConfigResponse,
-    summary="Get Memory Configuration",
-    description="Retrieve the current memory system configuration.",
+    summary="获取记忆配置",
+    description="检索当前记忆系统的配置。",
 )
 async def get_memory_config_endpoint() -> MemoryConfigResponse:
     """Get the memory system configuration.
@@ -327,8 +327,8 @@ async def get_memory_config_endpoint() -> MemoryConfigResponse:
     "/memory/status",
     response_model=MemoryStatusResponse,
     response_model_exclude_none=True,
-    summary="Get Memory Status",
-    description="Retrieve both memory configuration and current data in a single request.",
+    summary="获取记忆状态",
+    description="在单个请求中检索记忆配置和当前数据。",
 )
 async def get_memory_status() -> MemoryStatusResponse:
     """Get the memory system status including configuration and data.

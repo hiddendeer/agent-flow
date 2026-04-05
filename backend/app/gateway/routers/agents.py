@@ -20,11 +20,11 @@ AGENT_NAME_PATTERN = re.compile(r"^[A-Za-z0-9-]+$")
 class AgentResponse(BaseModel):
     """Response model for a custom agent."""
 
-    name: str = Field(..., description="Agent name (hyphen-case)")
-    description: str = Field(default="", description="Agent description")
-    model: str | None = Field(default=None, description="Optional model override")
-    tool_groups: list[str] | None = Field(default=None, description="Optional tool group whitelist")
-    soul: str | None = Field(default=None, description="SOUL.md content (included on GET /{name})")
+    name: str = Field(..., description="Agent 名称 (连字符分隔)")
+    description: str = Field(default="", description="Agent 描述")
+    model: str | None = Field(default=None, description="可选的模型覆盖配置")
+    tool_groups: list[str] | None = Field(default=None, description="可选的工具组白名单")
+    soul: str | None = Field(default=None, description="SOUL.md 内容（在 GET /{name} 接口中包含）")
 
 
 class AgentsListResponse(BaseModel):
@@ -36,20 +36,20 @@ class AgentsListResponse(BaseModel):
 class AgentCreateRequest(BaseModel):
     """Request body for creating a custom agent."""
 
-    name: str = Field(..., description="Agent name (must match ^[A-Za-z0-9-]+$, stored as lowercase)")
-    description: str = Field(default="", description="Agent description")
-    model: str | None = Field(default=None, description="Optional model override")
-    tool_groups: list[str] | None = Field(default=None, description="Optional tool group whitelist")
-    soul: str = Field(default="", description="SOUL.md content — agent personality and behavioral guardrails")
+    name: str = Field(..., description="Agent 名称（必须匹配 ^[A-Za-z0-9-]+$，存储为小写）")
+    description: str = Field(default="", description="Agent 描述")
+    model: str | None = Field(default=None, description="可选的模型覆盖配置")
+    tool_groups: list[str] | None = Field(default=None, description="可选的工具组白名单")
+    soul: str = Field(default="", description="SOUL.md 内容 —— Agent 的人格和行为守卫")
 
 
 class AgentUpdateRequest(BaseModel):
     """Request body for updating a custom agent."""
 
-    description: str | None = Field(default=None, description="Updated description")
-    model: str | None = Field(default=None, description="Updated model override")
-    tool_groups: list[str] | None = Field(default=None, description="Updated tool group whitelist")
-    soul: str | None = Field(default=None, description="Updated SOUL.md content")
+    description: str | None = Field(default=None, description="更新后的描述")
+    model: str | None = Field(default=None, description="更新后的模型覆盖配置")
+    tool_groups: list[str] | None = Field(default=None, description="更新后的工具组白名单")
+    soul: str | None = Field(default=None, description="更新后的 SOUL.md 内容")
 
 
 def _validate_agent_name(name: str) -> None:
@@ -91,8 +91,8 @@ def _agent_config_to_response(agent_cfg: AgentConfig, include_soul: bool = False
 @router.get(
     "/agents",
     response_model=AgentsListResponse,
-    summary="List Custom Agents",
-    description="List all custom agents available in the agents directory.",
+    summary="获取自定义 Agent 列表",
+    description="列出 agents 目录中可用的所有自定义 Agent。",
 )
 async def list_agents() -> AgentsListResponse:
     """List all custom agents.
@@ -110,8 +110,8 @@ async def list_agents() -> AgentsListResponse:
 
 @router.get(
     "/agents/check",
-    summary="Check Agent Name",
-    description="Validate an agent name and check if it is available (case-insensitive).",
+    summary="检查 Agent 名称",
+    description="验证 Agent 名称并检查其是否可用（不区分大小写）。",
 )
 async def check_agent_name(name: str) -> dict:
     """Check whether an agent name is valid and not yet taken.
@@ -134,8 +134,8 @@ async def check_agent_name(name: str) -> dict:
 @router.get(
     "/agents/{name}",
     response_model=AgentResponse,
-    summary="Get Custom Agent",
-    description="Retrieve details and SOUL.md content for a specific custom agent.",
+    summary="获取自定义 Agent 详情",
+    description="检索特定自定义 Agent 的详细信息和 SOUL.md 内容。",
 )
 async def get_agent(name: str) -> AgentResponse:
     """Get a specific custom agent by name.
@@ -166,8 +166,8 @@ async def get_agent(name: str) -> AgentResponse:
     "/agents",
     response_model=AgentResponse,
     status_code=201,
-    summary="Create Custom Agent",
-    description="Create a new custom agent with its config and SOUL.md.",
+    summary="创建自定义 Agent",
+    description="创建一个包含配置和 SOUL.md 的新自定义 Agent。",
 )
 async def create_agent_endpoint(request: AgentCreateRequest) -> AgentResponse:
     """Create a new custom agent.
@@ -227,8 +227,8 @@ async def create_agent_endpoint(request: AgentCreateRequest) -> AgentResponse:
 @router.put(
     "/agents/{name}",
     response_model=AgentResponse,
-    summary="Update Custom Agent",
-    description="Update an existing custom agent's config and/or SOUL.md.",
+    summary="更新自定义 Agent",
+    description="更新现有自定义 Agent 的配置和/或 SOUL.md 内容。",
 )
 async def update_agent(name: str, request: AgentUpdateRequest) -> AgentResponse:
     """Update an existing custom agent.
@@ -294,20 +294,20 @@ async def update_agent(name: str, request: AgentUpdateRequest) -> AgentResponse:
 class UserProfileResponse(BaseModel):
     """Response model for the global user profile (USER.md)."""
 
-    content: str | None = Field(default=None, description="USER.md content, or null if not yet created")
+    content: str | None = Field(default=None, description="USER.md 内容，如果尚未创建则为 null")
 
 
 class UserProfileUpdateRequest(BaseModel):
     """Request body for setting the global user profile."""
 
-    content: str = Field(default="", description="USER.md content — describes the user's background and preferences")
+    content: str = Field(default="", description="USER.md 内容 —— 描述用户的背景和偏好")
 
 
 @router.get(
     "/user-profile",
     response_model=UserProfileResponse,
-    summary="Get User Profile",
-    description="Read the global USER.md file that is injected into all custom agents.",
+    summary="获取用户画像",
+    description="读取全局 USER.md 文件，该文件会被注入到所有自定义 Agent 中。",
 )
 async def get_user_profile() -> UserProfileResponse:
     """Return the current USER.md content.
@@ -329,8 +329,8 @@ async def get_user_profile() -> UserProfileResponse:
 @router.put(
     "/user-profile",
     response_model=UserProfileResponse,
-    summary="Update User Profile",
-    description="Write the global USER.md file that is injected into all custom agents.",
+    summary="更新用户画像",
+    description="写入全局 USER.md 文件，该文件会被注入到所有自定义 Agent 中。",
 )
 async def update_user_profile(request: UserProfileUpdateRequest) -> UserProfileResponse:
     """Create or overwrite the global USER.md.
@@ -355,8 +355,8 @@ async def update_user_profile(request: UserProfileUpdateRequest) -> UserProfileR
 @router.delete(
     "/agents/{name}",
     status_code=204,
-    summary="Delete Custom Agent",
-    description="Delete a custom agent and all its files (config, SOUL.md, memory).",
+    summary="删除自定义 Agent",
+    description="删除自定义 Agent 及其所有文件（配置、SOUL.md、记忆等）。",
 )
 async def delete_agent(name: str) -> None:
     """Delete a custom agent.

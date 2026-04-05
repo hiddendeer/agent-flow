@@ -53,7 +53,12 @@ def _make_file_sandbox_writable(file_path: os.PathLike[str] | str) -> None:
     os.chmod(file_path, writable_mode, **chmod_kwargs)
 
 
-@router.post("", response_model=UploadResponse)
+@router.post(
+    "",
+    response_model=UploadResponse,
+    summary="上传文件",
+    description="向线程的上传目录上传多个文件。",
+)
 async def upload_files(
     thread_id: str,
     files: list[UploadFile] = File(...),
@@ -132,7 +137,12 @@ async def upload_files(
     )
 
 
-@router.get("/list", response_model=dict)
+@router.get(
+    "/list",
+    response_model=dict,
+    summary="列出已上传文件",
+    description="列出线程上传目录中的所有文件。",
+)
 async def list_uploaded_files(thread_id: str) -> dict:
     """List all files in a thread's uploads directory."""
     try:
@@ -150,7 +160,11 @@ async def list_uploaded_files(thread_id: str) -> dict:
     return result
 
 
-@router.delete("/{filename}")
+@router.delete(
+    "/{filename}",
+    summary="删除已上传文件",
+    description="从线程的上传目录中删除指定文件。",
+)
 async def delete_uploaded_file(thread_id: str, filename: str) -> dict:
     """Delete a file from a thread's uploads directory."""
     try:

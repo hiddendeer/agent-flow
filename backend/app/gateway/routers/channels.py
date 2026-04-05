@@ -22,7 +22,12 @@ class ChannelRestartResponse(BaseModel):
     message: str
 
 
-@router.get("/", response_model=ChannelStatusResponse)
+@router.get(
+    "/",
+    response_model=ChannelStatusResponse,
+    summary="获取通道状态",
+    description="获取所有 IM 通道（如飞书、Slack、Telegram）的运行状态。",
+)
 async def get_channels_status() -> ChannelStatusResponse:
     """Get the status of all IM channels."""
     from app.channels.service import get_channel_service
@@ -34,7 +39,12 @@ async def get_channels_status() -> ChannelStatusResponse:
     return ChannelStatusResponse(**status)
 
 
-@router.post("/{name}/restart", response_model=ChannelRestartResponse)
+@router.post(
+    "/{name}/restart",
+    response_model=ChannelRestartResponse,
+    summary="重启通道",
+    description="重启指定的 IM 通道服务。",
+)
 async def restart_channel(name: str) -> ChannelRestartResponse:
     """Restart a specific IM channel."""
     from app.channels.service import get_channel_service

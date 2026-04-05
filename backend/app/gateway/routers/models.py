@@ -9,12 +9,12 @@ router = APIRouter(prefix="/api", tags=["models"])
 class ModelResponse(BaseModel):
     """Response model for model information."""
 
-    name: str = Field(..., description="Unique identifier for the model")
-    model: str = Field(..., description="Actual provider model identifier")
-    display_name: str | None = Field(None, description="Human-readable name")
-    description: str | None = Field(None, description="Model description")
-    supports_thinking: bool = Field(default=False, description="Whether model supports thinking mode")
-    supports_reasoning_effort: bool = Field(default=False, description="Whether model supports reasoning effort")
+    name: str = Field(..., description="模型的唯一标识符")
+    model: str = Field(..., description="提供商的实际模型标识符")
+    display_name: str | None = Field(None, description="人类可读的名称")
+    description: str | None = Field(None, description="模型描述")
+    supports_thinking: bool = Field(default=False, description="模型是否支持思考模式")
+    supports_reasoning_effort: bool = Field(default=False, description="模型是否支持推理力度配置")
 
 
 class ModelsListResponse(BaseModel):
@@ -26,8 +26,8 @@ class ModelsListResponse(BaseModel):
 @router.get(
     "/models",
     response_model=ModelsListResponse,
-    summary="List All Models",
-    description="Retrieve a list of all available AI models configured in the system.",
+    summary="获取所有模型列表",
+    description="检索系统中配置的所有可用 AI 模型的列表。",
 )
 async def list_models() -> ModelsListResponse:
     """List all available models from configuration.
@@ -76,8 +76,8 @@ async def list_models() -> ModelsListResponse:
 @router.get(
     "/models/{model_name}",
     response_model=ModelResponse,
-    summary="Get Model Details",
-    description="Retrieve detailed information about a specific AI model by its name.",
+    summary="获取模型详情",
+    description="根据模型名称检索特定 AI 模型的详细信息。",
 )
 async def get_model(model_name: str) -> ModelResponse:
     """Get a specific model by name.

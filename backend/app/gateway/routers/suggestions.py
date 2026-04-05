@@ -13,18 +13,18 @@ router = APIRouter(prefix="/api", tags=["suggestions"])
 
 
 class SuggestionMessage(BaseModel):
-    role: str = Field(..., description="Message role: user|assistant")
-    content: str = Field(..., description="Message content as plain text")
+    role: str = Field(..., description="消息角色：user（用户）| assistant（助手）")
+    content: str = Field(..., description="纯文本格式的消息内容")
 
 
 class SuggestionsRequest(BaseModel):
-    messages: list[SuggestionMessage] = Field(..., description="Recent conversation messages")
-    n: int = Field(default=3, ge=1, le=5, description="Number of suggestions to generate")
-    model_name: str | None = Field(default=None, description="Optional model override")
+    messages: list[SuggestionMessage] = Field(..., description="最近的对话消息列表")
+    n: int = Field(default=3, ge=1, le=5, description="要生成的建议数量")
+    model_name: str | None = Field(default=None, description="可选的模型覆盖配置")
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: list[str] = Field(default_factory=list, description="Suggested follow-up questions")
+    suggestions: list[str] = Field(default_factory=list, description="建议的后续问题列表")
 
 
 def _strip_markdown_code_fence(text: str) -> str:
@@ -95,8 +95,8 @@ def _format_conversation(messages: list[SuggestionMessage]) -> str:
 @router.post(
     "/threads/{thread_id}/suggestions",
     response_model=SuggestionsResponse,
-    summary="Generate Follow-up Questions",
-    description="Generate short follow-up questions a user might ask next, based on recent conversation context.",
+    summary="生成后续问题建议",
+    description="根据最近的对话上下文，生成用户接下来可能会问的短问题建议。",
 )
 async def generate_suggestions(thread_id: str, request: SuggestionsRequest) -> SuggestionsResponse:
     if not request.messages:

@@ -31,7 +31,11 @@ def _resolve_thread_id(body: RunCreateRequest) -> str:
     return str(uuid.uuid4())
 
 
-@router.post("/stream")
+@router.post(
+    "/stream",
+    summary="无状态流式运行",
+    description="创建一个运行并通过 SSE 流式传输事件。如果请求体中提供了 thread_id，则在现有线程上运行以保留历史记录；否则自动创建临时线程。",
+)
 async def stateless_stream(body: RunCreateRequest, request: Request) -> StreamingResponse:
     """Create a run and stream events via SSE.
 
@@ -55,7 +59,12 @@ async def stateless_stream(body: RunCreateRequest, request: Request) -> Streamin
     )
 
 
-@router.post("/wait", response_model=dict)
+@router.post(
+    "/wait",
+    response_model=dict,
+    summary="无状态阻塞运行",
+    description="创建一个运行并阻塞直到完成。如果请求体中提供了 thread_id，则在现有线程上运行以保留历史记录；否则自动创建临时线程。",
+)
 async def stateless_wait(body: RunCreateRequest, request: Request) -> dict:
     """Create a run and block until completion.
 

@@ -18,11 +18,11 @@ router = APIRouter(prefix="/api", tags=["skills"])
 class SkillResponse(BaseModel):
     """Response model for skill information."""
 
-    name: str = Field(..., description="Name of the skill")
-    description: str = Field(..., description="Description of what the skill does")
-    license: str | None = Field(None, description="License information")
-    category: str = Field(..., description="Category of the skill (public or custom)")
-    enabled: bool = Field(default=True, description="Whether this skill is enabled")
+    name: str = Field(..., description="技能名称")
+    description: str = Field(..., description="技能功能的简述")
+    license: str | None = Field(None, description="许可证信息")
+    category: str = Field(..., description="技能类别（public 或 custom）")
+    enabled: bool = Field(default=True, description="此技能是否已启用")
 
 
 class SkillsListResponse(BaseModel):
@@ -34,22 +34,22 @@ class SkillsListResponse(BaseModel):
 class SkillUpdateRequest(BaseModel):
     """Request model for updating a skill."""
 
-    enabled: bool = Field(..., description="Whether to enable or disable the skill")
+    enabled: bool = Field(..., description="是将技能启用还是禁用")
 
 
 class SkillInstallRequest(BaseModel):
     """Request model for installing a skill from a .skill file."""
 
-    thread_id: str = Field(..., description="The thread ID where the .skill file is located")
-    path: str = Field(..., description="Virtual path to the .skill file (e.g., mnt/user-data/outputs/my-skill.skill)")
+    thread_id: str = Field(..., description=".skill 文件所在的线程 ID")
+    path: str = Field(..., description=".skill 文件的虚拟路径（例如 mnt/user-data/outputs/my-skill.skill）")
 
 
 class SkillInstallResponse(BaseModel):
     """Response model for skill installation."""
 
-    success: bool = Field(..., description="Whether the installation was successful")
-    skill_name: str = Field(..., description="Name of the installed skill")
-    message: str = Field(..., description="Installation result message")
+    success: bool = Field(..., description="安装是否成功")
+    skill_name: str = Field(..., description="安装的技能名称")
+    message: str = Field(..., description="安装结果消息")
 
 
 def _skill_to_response(skill: Skill) -> SkillResponse:
@@ -66,8 +66,8 @@ def _skill_to_response(skill: Skill) -> SkillResponse:
 @router.get(
     "/skills",
     response_model=SkillsListResponse,
-    summary="List All Skills",
-    description="Retrieve a list of all available skills from both public and custom directories.",
+    summary="获取所有技能列表",
+    description="检索公共（public）和自定义（custom）目录中的所有可用技能列表。",
 )
 async def list_skills() -> SkillsListResponse:
     try:
@@ -81,8 +81,8 @@ async def list_skills() -> SkillsListResponse:
 @router.get(
     "/skills/{skill_name}",
     response_model=SkillResponse,
-    summary="Get Skill Details",
-    description="Retrieve detailed information about a specific skill by its name.",
+    summary="获取技能详情",
+    description="根据技能名称检索特定技能的详细信息。",
 )
 async def get_skill(skill_name: str) -> SkillResponse:
     try:
@@ -103,8 +103,8 @@ async def get_skill(skill_name: str) -> SkillResponse:
 @router.put(
     "/skills/{skill_name}",
     response_model=SkillResponse,
-    summary="Update Skill",
-    description="Update a skill's enabled status by modifying the extensions_config.json file.",
+    summary="更新技能",
+    description="通过修改 extensions_config.json 文件来更新技能的启用状态。",
 )
 async def update_skill(skill_name: str, request: SkillUpdateRequest) -> SkillResponse:
     try:
@@ -152,8 +152,8 @@ async def update_skill(skill_name: str, request: SkillUpdateRequest) -> SkillRes
 @router.post(
     "/skills/install",
     response_model=SkillInstallResponse,
-    summary="Install Skill",
-    description="Install a skill from a .skill file (ZIP archive) located in the thread's user-data directory.",
+    summary="安装技能",
+    description="从位于线程 user-data 目录中的 .skill 文件（ZIP 归档）安装技能。",
 )
 async def install_skill(request: SkillInstallRequest) -> SkillInstallResponse:
     try:
