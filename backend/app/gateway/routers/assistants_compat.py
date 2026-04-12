@@ -85,12 +85,7 @@ def _list_assistants() -> list[AssistantResponse]:
     return assistants
 
 
-@router.post(
-    "/search",
-    response_model=list[AssistantResponse],
-    summary="搜索助手",
-    description="搜索助手。返回所有已注册的助手（包含 lead_agent 和配置中的自定义 Agent）。",
-)
+@router.post("/search", response_model=list[AssistantResponse])
 async def search_assistants(body: AssistantSearchRequest | None = None) -> list[AssistantResponse]:
     """Search assistants.
 
@@ -108,12 +103,7 @@ async def search_assistants(body: AssistantSearchRequest | None = None) -> list[
     return assistants[offset : offset + limit]
 
 
-@router.get(
-    "/{assistant_id}",
-    response_model=AssistantResponse,
-    summary="获取助手详情",
-    description="根据助手 ID 获取助手详细信息。",
-)
+@router.get("/{assistant_id}", response_model=AssistantResponse)
 async def get_assistant_compat(assistant_id: str) -> AssistantResponse:
     """Get an assistant by ID."""
     for a in _list_assistants():
@@ -122,11 +112,7 @@ async def get_assistant_compat(assistant_id: str) -> AssistantResponse:
     raise HTTPException(status_code=404, detail=f"Assistant {assistant_id} not found")
 
 
-@router.get(
-    "/{assistant_id}/graph",
-    summary="获取助手图结构",
-    description="获取助手的图结构描述。由于网关限制，目前仅返回最小化的图描述以满足 SDK 验证。",
-)
+@router.get("/{assistant_id}/graph")
 async def get_assistant_graph(assistant_id: str) -> dict:
     """Get the graph structure for an assistant.
 
@@ -144,11 +130,7 @@ async def get_assistant_graph(assistant_id: str) -> dict:
     }
 
 
-@router.get(
-    "/{assistant_id}/schemas",
-    summary="获取助手 Schema",
-    description="获取助手的输入、输出和状态的 JSON Schema。目前返回空 Schema 以满足 SDK 验证。",
-)
+@router.get("/{assistant_id}/schemas")
 async def get_assistant_schemas(assistant_id: str) -> dict:
     """Get JSON schemas for an assistant's input/output/state.
 

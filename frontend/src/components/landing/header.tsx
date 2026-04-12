@@ -31,7 +31,7 @@ export async function Header({ className, homeURL, locale }: HeaderProps) {
           target={isExternalHome ? "_blank" : "_self"}
           rel={isExternalHome ? "noopener noreferrer" : undefined}
         >
-          <h1 className="font-serif text-xl">宅力觉醒智能体</h1>
+          <h1 className="font-serif text-xl">DeerFlow</h1>
         </a>
       </div>
       <nav className="mr-8 ml-auto flex items-center gap-8 text-sm font-medium">
@@ -41,13 +41,12 @@ export async function Header({ className, homeURL, locale }: HeaderProps) {
         >
           {t.home.docs}
         </Link>
-        <a
-          href={`/${lang}/blog`}
-          target="_self"
+        <Link
+          href="/blog/posts"
           className="text-secondary-foreground hover:text-foreground transition-colors"
         >
           {t.home.blog}
-        </a>
+        </Link>
       </nav>
       <div className="relative">
         <div

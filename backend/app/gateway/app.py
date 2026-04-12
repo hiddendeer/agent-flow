@@ -80,86 +80,85 @@ def create_app() -> FastAPI:
     Returns:
         Configured FastAPI application instance.
     """
-    config = get_gateway_config()
 
     app = FastAPI(
-        title="DeerFlow API 网关",
+        title="DeerFlow API Gateway",
         description="""
-## DeerFlow API 网关
+## DeerFlow API Gateway
 
-DeerFlow 的 API 网关 - 基于 LangGraph 的 AI Agent 后端，具备沙箱执行能力。
+API Gateway for DeerFlow - A LangGraph-based AI agent backend with sandbox execution capabilities.
 
-### 主要功能
+### Features
 
-- **模型管理**：查询和检索可用的 AI 模型
-- **MCP 配置**：管理模型上下文协议 (MCP) 服务器配置
-- **记忆管理**：访问和管理全局记忆数据，用于个性化对话
-- **技能管理**：查询和管理技能及其启用状态
-- **产物管理**：访问线程产物和生成的文件
-- **健康监测**：系统健康检查接口
+- **Models Management**: Query and retrieve available AI models
+- **MCP Configuration**: Manage Model Context Protocol (MCP) server configurations
+- **Memory Management**: Access and manage global memory data for personalized conversations
+- **Skills Management**: Query and manage skills and their enabled status
+- **Artifacts**: Access thread artifacts and generated files
+- **Health Monitoring**: System health check endpoints
 
-### 架构说明
+### Architecture
 
-LangGraph 请求由 nginx 反向代理处理。
-此网关为模型、MCP 配置、技能和产物提供自定义接口。
+LangGraph requests are handled by nginx reverse proxy.
+This gateway provides custom endpoints for models, MCP configuration, skills, and artifacts.
         """,
         version="0.1.0",
         lifespan=lifespan,
-        docs_url="/docs" if config.docs_enabled else None,
-        redoc_url="/redoc" if config.docs_enabled else None,
-        openapi_url="/openapi.json" if config.docs_enabled else None,
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
         openapi_tags=[
             {
                 "name": "models",
-                "description": "查询可用 AI 模型及其配置的操作",
+                "description": "Operations for querying available AI models and their configurations",
             },
             {
                 "name": "mcp",
-                "description": "管理模型上下文协议 (MCP) 服务器配置",
+                "description": "Manage Model Context Protocol (MCP) server configurations",
             },
             {
                 "name": "memory",
-                "description": "访问和管理用于个性化对话的全局记忆数据",
+                "description": "Access and manage global memory data for personalized conversations",
             },
             {
                 "name": "skills",
-                "description": "管理技能及其配置",
+                "description": "Manage skills and their configurations",
             },
             {
                 "name": "artifacts",
-                "description": "访问和下载线程产物及生成的文件",
+                "description": "Access and download thread artifacts and generated files",
             },
             {
                 "name": "uploads",
-                "description": "上传和管理用于线程的用户文件",
+                "description": "Upload and manage user files for threads",
             },
             {
                 "name": "threads",
-                "description": "管理 DeerFlow 线程本地文件系统数据",
+                "description": "Manage DeerFlow thread-local filesystem data",
             },
             {
                 "name": "agents",
-                "description": "创建和管理具有特定配置和提示词的自定义 Agent",
+                "description": "Create and manage custom agents with per-agent config and prompts",
             },
             {
                 "name": "suggestions",
-                "description": "为对话生成后续问题建议",
+                "description": "Generate follow-up question suggestions for conversations",
             },
             {
                 "name": "channels",
-                "description": "管理 IM 通道集成（飞书、Slack、Telegram）",
+                "description": "Manage IM channel integrations (Feishu, Slack, Telegram)",
             },
             {
                 "name": "assistants-compat",
-                "description": "兼容 LangGraph Platform 的助手 API (桩接口)",
+                "description": "LangGraph Platform-compatible assistants API (stub)",
             },
             {
                 "name": "runs",
-                "description": "兼容 LangGraph Platform 的运行生命周期（创建、流式传输、取消）",
+                "description": "LangGraph Platform-compatible runs lifecycle (create, stream, cancel)",
             },
             {
                 "name": "health",
-                "description": "健康检查和系统状态接口",
+                "description": "Health check and system status endpoints",
             },
         ],
     )
@@ -206,7 +205,7 @@ LangGraph 请求由 nginx 反向代理处理。
     # Stateless Runs API (stream/wait without a pre-existing thread)
     app.include_router(runs.router)
 
-    @app.get("/health", tags=["health"], summary="健康检查", description="检查服务的运行状态。")
+    @app.get("/health", tags=["health"])
     async def health_check() -> dict:
         """Health check endpoint.
 

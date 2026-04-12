@@ -33,26 +33,26 @@ router = APIRouter(prefix="/api/threads", tags=["runs"])
 
 
 class RunCreateRequest(BaseModel):
-    assistant_id: str | None = Field(default=None, description="要使用的 Agent / 助手 ID")
-    input: dict[str, Any] | None = Field(default=None, description="图输入（例如 {messages: [...]})")
-    command: dict[str, Any] | None = Field(default=None, description="LangGraph 命令")
-    metadata: dict[str, Any] | None = Field(default=None, description="运行元数据")
-    config: dict[str, Any] | None = Field(default=None, description="RunnableConfig 覆盖配置")
-    context: dict[str, Any] | None = Field(default=None, description="DeerFlow 上下文覆盖配置 (model_name, thinking_enabled 等)")
-    webhook: str | None = Field(default=None, description="完成后的回调 URL")
-    checkpoint_id: str | None = Field(default=None, description="从指定检查点恢复")
-    checkpoint: dict[str, Any] | None = Field(default=None, description="完整的检查点对象")
-    interrupt_before: list[str] | Literal["*"] | None = Field(default=None, description="在这些节点之前中断")
-    interrupt_after: list[str] | Literal["*"] | None = Field(default=None, description="在这些节点之后中断")
-    stream_mode: list[str] | str | None = Field(default=None, description="流模式")
-    stream_subgraphs: bool = Field(default=False, description="是否包含子图事件")
-    stream_resumable: bool | None = Field(default=None, description="SSE 可恢复模式")
-    on_disconnect: Literal["cancel", "continue"] = Field(default="cancel", description="SSE 断开连接时的行为")
-    on_completion: Literal["delete", "keep"] = Field(default="keep", description="完成后是否删除临时线程")
-    multitask_strategy: Literal["reject", "rollback", "interrupt", "enqueue"] = Field(default="reject", description="并发策略")
-    after_seconds: float | None = Field(default=None, description="延迟执行秒数")
-    if_not_exists: Literal["reject", "create"] = Field(default="create", description="线程创建策略")
-    feedback_keys: list[str] | None = Field(default=None, description="LangSmith 反馈键")
+    assistant_id: str | None = Field(default=None, description="Agent / assistant to use")
+    input: dict[str, Any] | None = Field(default=None, description="Graph input (e.g. {messages: [...]})")
+    command: dict[str, Any] | None = Field(default=None, description="LangGraph Command")
+    metadata: dict[str, Any] | None = Field(default=None, description="Run metadata")
+    config: dict[str, Any] | None = Field(default=None, description="RunnableConfig overrides")
+    context: dict[str, Any] | None = Field(default=None, description="DeerFlow context overrides (model_name, thinking_enabled, etc.)")
+    webhook: str | None = Field(default=None, description="Completion callback URL")
+    checkpoint_id: str | None = Field(default=None, description="Resume from checkpoint")
+    checkpoint: dict[str, Any] | None = Field(default=None, description="Full checkpoint object")
+    interrupt_before: list[str] | Literal["*"] | None = Field(default=None, description="Nodes to interrupt before")
+    interrupt_after: list[str] | Literal["*"] | None = Field(default=None, description="Nodes to interrupt after")
+    stream_mode: list[str] | str | None = Field(default=None, description="Stream mode(s)")
+    stream_subgraphs: bool = Field(default=False, description="Include subgraph events")
+    stream_resumable: bool | None = Field(default=None, description="SSE resumable mode")
+    on_disconnect: Literal["cancel", "continue"] = Field(default="cancel", description="Behaviour on SSE disconnect")
+    on_completion: Literal["delete", "keep"] = Field(default="keep", description="Delete temp thread on completion")
+    multitask_strategy: Literal["reject", "rollback", "interrupt", "enqueue"] = Field(default="reject", description="Concurrency strategy")
+    after_seconds: float | None = Field(default=None, description="Delayed execution")
+    if_not_exists: Literal["reject", "create"] = Field(default="create", description="Thread creation policy")
+    feedback_keys: list[str] | None = Field(default=None, description="LangSmith feedback keys")
 
 
 class RunResponse(BaseModel):
@@ -91,23 +91,21 @@ def _record_to_response(record: RunRecord) -> RunResponse:
 # ---------------------------------------------------------------------------
 
 
-@router.post(
-    "/{thread_id}/runs",
-    response_model=RunResponse,
-    summary="创建运行 (后台)",
-    description="在后台创建一个运行并立即返回。",
-)
+@router.post("/{thread_id}/runs", response_model=RunResponse)
 async def create_run(thread_id: str, body: RunCreateRequest, request: Request) -> RunResponse:
+    """Create a background run (returns immediately)."""
     record = await start_run(body, thread_id, request)
     return _record_to_response(record)
 
 
-@router.post(
-    "/{thread_id}/runs/stream",
-    summary="创建运行并流式输出",
-    description="创建一个运行，并通过 SSE（Server-Sent Events）流式传输事件。响应包含 Content-Location 标头以匹配协议。",
-)
+@router.post("/{thread_id}/runs/stream")
 async def stream_run(thread_id: str, body: RunCreateRequest, request: Request) -> StreamingResponse:
+    """Create a run and stream events via SSE.
+
+    The response includes a ``Content-Location`` header with the run's
+    resource URL, matching the LangGraph Platform protocol.  The
+    ``useStream`` React hook uses this to extract run metadata.
+    """
     bridge = get_stream_bridge(request)
     run_mgr = get_run_manager(request)
     record = await start_run(body, thread_id, request)
@@ -120,19 +118,16 @@ async def stream_run(thread_id: str, body: RunCreateRequest, request: Request) -
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
             # LangGraph Platform includes run metadata in this header.
-            # The SDK's _get_run_metadata_from_response() parses it.
-            "Content-Location": (f"/api/threads/{thread_id}/runs/{record.run_id}/stream?thread_id={thread_id}&run_id={record.run_id}"),
+            # The SDK uses a greedy regex to extract the run id from this path,
+            # so it must point at the canonical run resource without extra suffixes.
+            "Content-Location": f"/api/threads/{thread_id}/runs/{record.run_id}",
         },
     )
 
 
-@router.post(
-    "/{thread_id}/runs/wait",
-    response_model=dict,
-    summary="创建运行并等待完成",
-    description="创建一个运行并阻塞直到其完成，返回最终状态。",
-)
+@router.post("/{thread_id}/runs/wait", response_model=dict)
 async def wait_run(thread_id: str, body: RunCreateRequest, request: Request) -> dict:
+    """Create a run and block until it completes, returning the final state."""
     record = await start_run(body, thread_id, request)
 
     if record.task is not None:
@@ -155,25 +150,17 @@ async def wait_run(thread_id: str, body: RunCreateRequest, request: Request) -> 
     return {"status": record.status.value, "error": record.error}
 
 
-@router.get(
-    "/{thread_id}/runs",
-    response_model=list[RunResponse],
-    summary="获取运行列表",
-    description="获取指定线程的所有运行记录。",
-)
+@router.get("/{thread_id}/runs", response_model=list[RunResponse])
 async def list_runs(thread_id: str, request: Request) -> list[RunResponse]:
+    """List all runs for a thread."""
     run_mgr = get_run_manager(request)
     records = await run_mgr.list_by_thread(thread_id)
     return [_record_to_response(r) for r in records]
 
 
-@router.get(
-    "/{thread_id}/runs/{run_id}",
-    response_model=RunResponse,
-    summary="获取运行详情",
-    description="获取特定运行的详细信息。",
-)
+@router.get("/{thread_id}/runs/{run_id}", response_model=RunResponse)
 async def get_run(thread_id: str, run_id: str, request: Request) -> RunResponse:
+    """Get details of a specific run."""
     run_mgr = get_run_manager(request)
     record = run_mgr.get(run_id)
     if record is None or record.thread_id != thread_id:
@@ -181,11 +168,7 @@ async def get_run(thread_id: str, run_id: str, request: Request) -> RunResponse:
     return _record_to_response(record)
 
 
-@router.post(
-    "/{thread_id}/runs/{run_id}/cancel",
-    summary="取消运行",
-    description="取消正在运行或待处理的任务。action 参数控制是中断还是回滚，wait 参数控制是否同步等待任务停止。",
-)
+@router.post("/{thread_id}/runs/{run_id}/cancel")
 async def cancel_run(
     thread_id: str,
     run_id: str,
@@ -193,6 +176,13 @@ async def cancel_run(
     wait: bool = Query(default=False, description="Block until run completes after cancel"),
     action: Literal["interrupt", "rollback"] = Query(default="interrupt", description="Cancel action"),
 ) -> Response:
+    """Cancel a running or pending run.
+
+    - action=interrupt: Stop execution, keep current checkpoint (can be resumed)
+    - action=rollback: Stop execution, revert to pre-run checkpoint state
+    - wait=true: Block until the run fully stops, return 204
+    - wait=false: Return immediately with 202
+    """
     run_mgr = get_run_manager(request)
     record = run_mgr.get(run_id)
     if record is None or record.thread_id != thread_id:
@@ -215,12 +205,9 @@ async def cancel_run(
     return Response(status_code=202)
 
 
-@router.get(
-    "/{thread_id}/runs/{run_id}/join",
-    summary="加入现有运行流",
-    description="加入现有运行的 SSE 消息流。",
-)
+@router.get("/{thread_id}/runs/{run_id}/join")
 async def join_run(thread_id: str, run_id: str, request: Request) -> StreamingResponse:
+    """Join an existing run's SSE stream."""
     bridge = get_stream_bridge(request)
     run_mgr = get_run_manager(request)
     record = run_mgr.get(run_id)
@@ -238,13 +225,7 @@ async def join_run(thread_id: str, run_id: str, request: Request) -> StreamingRe
     )
 
 
-@router.api_route(
-    "/{thread_id}/runs/{run_id}/stream",
-    methods=["GET", "POST"],
-    response_model=None,
-    summary="获取现有运行流或取消并流式输出",
-    description="GET 请求用于加入现有流。POST 请求可带 action 参数，用于先取消运行再流式输出剩余缓冲事件。",
-)
+@router.api_route("/{thread_id}/runs/{run_id}/stream", methods=["GET", "POST"], response_model=None)
 async def stream_existing_run(
     thread_id: str,
     run_id: str,
@@ -252,6 +233,13 @@ async def stream_existing_run(
     action: Literal["interrupt", "rollback"] | None = Query(default=None, description="Cancel action"),
     wait: int = Query(default=0, description="Block until cancelled (1) or return immediately (0)"),
 ):
+    """Join an existing run's SSE stream (GET), or cancel-then-stream (POST).
+
+    The LangGraph SDK's ``joinStream`` and ``useStream`` stop button both use
+    ``POST`` to this endpoint.  When ``action=interrupt`` or ``action=rollback``
+    is present the run is cancelled first; the response then streams any
+    remaining buffered events so the client observes a clean shutdown.
+    """
     run_mgr = get_run_manager(request)
     record = run_mgr.get(run_id)
     if record is None or record.thread_id != thread_id:

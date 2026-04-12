@@ -50,57 +50,57 @@ class ThreadDeleteResponse(BaseModel):
 class ThreadResponse(BaseModel):
     """Response model for a single thread."""
 
-    thread_id: str = Field(description="线程的唯一标识符")
-    status: str = Field(default="idle", description="线程状态：idle（空闲）, busy（忙碌）, interrupted（已中断）, error（错误）")
-    created_at: str = Field(default="", description="ISO 时间戳 (创建时间)")
-    updated_at: str = Field(default="", description="ISO 时间戳 (更新时间)")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="线程元数据")
-    values: dict[str, Any] = Field(default_factory=dict, description="当前状态的通道值")
-    interrupts: dict[str, Any] = Field(default_factory=dict, description="待处理的中断")
+    thread_id: str = Field(description="Unique thread identifier")
+    status: str = Field(default="idle", description="Thread status: idle, busy, interrupted, error")
+    created_at: str = Field(default="", description="ISO timestamp")
+    updated_at: str = Field(default="", description="ISO timestamp")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Thread metadata")
+    values: dict[str, Any] = Field(default_factory=dict, description="Current state channel values")
+    interrupts: dict[str, Any] = Field(default_factory=dict, description="Pending interrupts")
 
 
 class ThreadCreateRequest(BaseModel):
     """Request body for creating a thread."""
 
-    thread_id: str | None = Field(default=None, description="可选的线程 ID（如果省略则自动生成）")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="初始元数据")
+    thread_id: str | None = Field(default=None, description="Optional thread ID (auto-generated if omitted)")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Initial metadata")
 
 
 class ThreadSearchRequest(BaseModel):
     """Request body for searching threads."""
 
-    metadata: dict[str, Any] = Field(default_factory=dict, description="元数据过滤器（精确匹配）")
-    limit: int = Field(default=100, ge=1, le=1000, description="最大结果数量")
-    offset: int = Field(default=0, ge=0, description="分页偏移量")
-    status: str | None = Field(default=None, description="按线程状态过滤")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Metadata filter (exact match)")
+    limit: int = Field(default=100, ge=1, le=1000, description="Maximum results")
+    offset: int = Field(default=0, ge=0, description="Pagination offset")
+    status: str | None = Field(default=None, description="Filter by thread status")
 
 
 class ThreadStateResponse(BaseModel):
     """Response model for thread state."""
 
-    values: dict[str, Any] = Field(default_factory=dict, description="当前通道值")
-    next: list[str] = Field(default_factory=list, description="接下来要执行的任务列表")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="检查点元数据")
-    checkpoint: dict[str, Any] = Field(default_factory=dict, description="检查点信息")
-    checkpoint_id: str | None = Field(default=None, description="当前检查点 ID")
-    parent_checkpoint_id: str | None = Field(default=None, description="父检查点 ID")
-    created_at: str | None = Field(default=None, description="检查点创建时间戳")
-    tasks: list[dict[str, Any]] = Field(default_factory=list, description="被中断的任务详情")
+    values: dict[str, Any] = Field(default_factory=dict, description="Current channel values")
+    next: list[str] = Field(default_factory=list, description="Next tasks to execute")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Checkpoint metadata")
+    checkpoint: dict[str, Any] = Field(default_factory=dict, description="Checkpoint info")
+    checkpoint_id: str | None = Field(default=None, description="Current checkpoint ID")
+    parent_checkpoint_id: str | None = Field(default=None, description="Parent checkpoint ID")
+    created_at: str | None = Field(default=None, description="Checkpoint timestamp")
+    tasks: list[dict[str, Any]] = Field(default_factory=list, description="Interrupted task details")
 
 
 class ThreadPatchRequest(BaseModel):
     """Request body for patching thread metadata."""
 
-    metadata: dict[str, Any] = Field(default_factory=dict, description="要合并的元数据")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Metadata to merge")
 
 
 class ThreadStateUpdateRequest(BaseModel):
     """Request body for updating thread state (human-in-the-loop resume)."""
 
-    values: dict[str, Any] | None = Field(default=None, description="要合并的通道值")
-    checkpoint_id: str | None = Field(default=None, description="要分支的检查点 ID")
-    checkpoint: dict[str, Any] | None = Field(default=None, description="完整的检查点对象")
-    as_node: str | None = Field(default=None, description="此次更新的节点身份")
+    values: dict[str, Any] | None = Field(default=None, description="Channel values to merge")
+    checkpoint_id: str | None = Field(default=None, description="Checkpoint to branch from")
+    checkpoint: dict[str, Any] | None = Field(default=None, description="Full checkpoint object")
+    as_node: str | None = Field(default=None, description="Node identity for the update")
 
 
 class HistoryEntry(BaseModel):
@@ -117,8 +117,8 @@ class HistoryEntry(BaseModel):
 class ThreadHistoryRequest(BaseModel):
     """Request body for checkpoint history."""
 
-    limit: int = Field(default=10, ge=1, le=100, description="最大条目数")
-    before: str | None = Field(default=None, description="用于分页的游标")
+    limit: int = Field(default=10, ge=1, le=100, description="Maximum entries")
+    before: str | None = Field(default=None, description="Cursor for pagination")
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +214,7 @@ def _derive_thread_status(checkpoint_tuple) -> str:
 # ---------------------------------------------------------------------------
 
 
-@router.delete("/{thread_id}", response_model=ThreadDeleteResponse, summary="删除线程数据", description="删除线程在本地持久化的文件系统数据。会清理 DeerFlow 管理的线程目录，移除检查点数据，并从存储（Store）中移除线程记录。")
+@router.delete("/{thread_id}", response_model=ThreadDeleteResponse)
 async def delete_thread_data(thread_id: str, request: Request) -> ThreadDeleteResponse:
     """Delete local persisted filesystem data for a thread.
 
@@ -244,7 +244,7 @@ async def delete_thread_data(thread_id: str, request: Request) -> ThreadDeleteRe
     return response
 
 
-@router.post("", response_model=ThreadResponse, summary="创建线程", description="创建一个新线程。线程记录将被写入存储（Store）以便快速列出，并在检查点管理器中写入一个空检查点（以便读取状态）。该操作是幂等的：如果 thread_id 已存在，将返回现有记录。")
+@router.post("", response_model=ThreadResponse)
 async def create_thread(body: ThreadCreateRequest, request: Request) -> ThreadResponse:
     """Create a new thread.
 
@@ -314,7 +314,7 @@ async def create_thread(body: ThreadCreateRequest, request: Request) -> ThreadRe
     )
 
 
-@router.post("/search", response_model=list[ThreadResponse], summary="搜索线程", description="搜索并列出线程。采用两阶段方法：\n\n1. 存储阶段（快速路径）：返回通过此网关创建或运行的线程元数据。\n2. 检查点补充阶段（延迟迁移）：发现并迁移由库直接创建的线程。")
+@router.post("/search", response_model=list[ThreadResponse])
 async def search_threads(body: ThreadSearchRequest, request: Request) -> list[ThreadResponse]:
     """Search and list threads.
 
@@ -419,7 +419,7 @@ async def search_threads(body: ThreadSearchRequest, request: Request) -> list[Th
     return results[body.offset : body.offset + body.limit]
 
 
-@router.patch("/{thread_id}", response_model=ThreadResponse, summary="部分更新线程元数据", description="将元数据合并到现有的线程记录中。")
+@router.patch("/{thread_id}", response_model=ThreadResponse)
 async def patch_thread(thread_id: str, body: ThreadPatchRequest, request: Request) -> ThreadResponse:
     """Merge metadata into a thread record."""
     store = get_store(request)
@@ -450,7 +450,7 @@ async def patch_thread(thread_id: str, body: ThreadPatchRequest, request: Reques
     )
 
 
-@router.get("/{thread_id}", response_model=ThreadResponse, summary="获取线程信息", description="获取线程基本信息。从存储中读取元数据，并从检查点管理器衍生准确的执行状态。")
+@router.get("/{thread_id}", response_model=ThreadResponse)
 async def get_thread(thread_id: str, request: Request) -> ThreadResponse:
     """Get thread info.
 
@@ -505,7 +505,7 @@ async def get_thread(thread_id: str, request: Request) -> ThreadResponse:
     )
 
 
-@router.get("/{thread_id}/state", response_model=ThreadStateResponse, summary="获取线程状态", description="获取线程的最新状态快照。通道值将被序列化以确保符合 JSON 安全格式。")
+@router.get("/{thread_id}/state", response_model=ThreadStateResponse)
 async def get_thread_state(thread_id: str, request: Request) -> ThreadStateResponse:
     """Get the latest state snapshot for a thread.
 
@@ -554,7 +554,7 @@ async def get_thread_state(thread_id: str, request: Request) -> ThreadStateRespo
     )
 
 
-@router.post("/{thread_id}/state", response_model=ThreadStateResponse, summary="更新线程状态", description="更新线程状态（例如用于人机交互恢复执行或重命名标题）。写入一个合并了新通道值的新检查点。")
+@router.post("/{thread_id}/state", response_model=ThreadStateResponse)
 async def update_thread_state(thread_id: str, body: ThreadStateUpdateRequest, request: Request) -> ThreadStateResponse:
     """Update thread state (e.g. for human-in-the-loop resume or title rename).
 
@@ -637,7 +637,7 @@ async def update_thread_state(thread_id: str, body: ThreadStateUpdateRequest, re
     )
 
 
-@router.post("/{thread_id}/history", response_model=list[HistoryEntry], summary="获取线程历史", description="获取线程的检查点历史记录列表。")
+@router.post("/{thread_id}/history", response_model=list[HistoryEntry])
 async def get_thread_history(thread_id: str, body: ThreadHistoryRequest, request: Request) -> list[HistoryEntry]:
     """Get checkpoint history for a thread."""
     checkpointer = get_checkpointer(request)
