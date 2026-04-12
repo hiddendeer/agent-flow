@@ -95,101 +95,96 @@ def _create_todo_list_middleware(is_plan_mode: bool) -> TodoMiddleware | None:
     # Custom prompts matching DeerFlow's style
     system_prompt = """
 <todo_list_system>
-You have access to the `write_todos` tool to help you manage and track complex multi-step objectives.
+You have access to the `write_todos` tool to help you manage and track complex smart home automation projects and multi-step configurations.
 
 **CRITICAL RULES:**
-- Mark todos as completed IMMEDIATELY after finishing each step - do NOT batch completions
-- Keep EXACTLY ONE task as `in_progress` at any time (unless tasks can run in parallel)
-- Update the todo list in REAL-TIME as you work - this gives users visibility into your progress
-- DO NOT use this tool for simple tasks (< 3 steps) - just complete them directly
+- Mark steps as completed IMMEDIATELY after finishing each setup or configuration - do NOT batch completions
+- Keep EXACTLY ONE task as `in_progress` during sequential device setup (unless configuring independent systems in parallel)
+- Update the todo list in REAL-TIME as you work - this gives residents visibility into the automation progress
+- DO NOT use this tool for simple commands (e.g. "turn on the light") - just execute them directly
 
 **When to Use:**
-This tool is designed for complex objectives that require systematic tracking:
-- Complex multi-step tasks requiring 3+ distinct steps
-- Non-trivial tasks needing careful planning and execution
-- User explicitly requests a todo list
-- User provides multiple tasks (numbered or comma-separated list)
-- The plan may need revisions based on intermediate results
+This tool is designed for complex smart home objectives requiring systematic tracking:
+- Multi-device automation scene setup (e.g. "Home Theater Mode")
+- Multi-room security system configuration and testing
+- Complex energy optimization audits and implementation
+- User explicitly requests a project plan for their home
+- Interactive troubleshooting across multiple IoT protocols
 
 **When NOT to Use:**
-- Single, straightforward tasks
-- Trivial tasks (< 3 steps)
-- Purely conversational or informational requests
-- Simple tool calls where the approach is obvious
+- Single device control commands
+- Simple status checks
+- Purely conversational interactions
+- Basic tool calls with obvious single steps
 
 **Best Practices:**
-- Break down complex tasks into smaller, actionable steps
-- Use clear, descriptive task names
-- Remove tasks that become irrelevant
-- Add new tasks discovered during implementation
-- Don't be afraid to revise the todo list as you learn more
-
-**Task Management:**
-Writing todos takes time and tokens - use it when helpful for managing complex problems, not for simple requests.
+- Break down complex automations into actionable device/system steps
+- Use clear, descriptive names for home zones and devices
+- Remove tasks if the underlying device becomes unreachable or irrelevant
+- Add new sub-steps discovered during network pairing or configuration
+- Revise the automation plan as you analyze device dependencies
 </todo_list_system>
 """
 
-    tool_description = """Use this tool to create and manage a structured task list for complex work sessions.
+    tool_description = """Use this tool to create and manage a structured task list for complex smart home projects.
 
-**IMPORTANT: Only use this tool for complex tasks (3+ steps). For simple requests, just do the work directly.**
+**IMPORTANT: Only use this tool for complex automation projects (3+ steps). For simple device controls, do the work directly.**
 
 ## When to Use
 
 Use this tool in these scenarios:
-1. **Complex multi-step tasks**: When a task requires 3 or more distinct steps or actions
-2. **Non-trivial tasks**: Tasks requiring careful planning or multiple operations
-3. **User explicitly requests todo list**: When the user directly asks you to track tasks
-4. **Multiple tasks**: When users provide a list of things to be done
-5. **Dynamic planning**: When the plan may need updates based on intermediate results
+1. **Complex automation setups**: When setting up scenes that involve 3 or more devices or logic gates
+2. **Whole-home configurations**: Tasks involving multiple rooms or subsystems (Security, HVAC, Lighting)
+3. **User requests a home project plan**: When the user asks for a step-by-step implementation of a feature
+4. **Multiple requested actions**: When a resident provides a list of home changes to be implemented
+5. **Dynamic troubleshooting**: When diagnosing complex network issues across various IoT standard (Matter, Zigbee, etc.)
 
 ## When NOT to Use
 
 Skip this tool when:
-1. The task is straightforward and takes less than 3 steps
-2. The task is trivial and tracking provides no benefit
-3. The task is purely conversational or informational
-4. It's clear what needs to be done and you can just do it
+1. The control command is straightforward and takes less than 3 steps
+2. The check is trivial and tracking provides no benefit to the resident
+3. The conversation is strictly informational
+4. It's clear how to reach the desired state and you can just do it
 
 ## How to Use
 
-1. **Starting a task**: Mark it as `in_progress` BEFORE beginning work
-2. **Completing a task**: Mark it as `completed` IMMEDIATELY after finishing
-3. **Updating the list**: Add new tasks, remove irrelevant ones, or update descriptions as needed
-4. **Multiple updates**: You can make several updates at once (e.g., complete one task and start the next)
+1. **Starting a setup**: Mark the task as `in_progress` BEFORE beginning device interaction
+2. **Completing a step**: Mark it as `completed` IMMEDIATELY after confirming device responsiveness
+3. **Updating the plan**: Add new configuration steps or update descriptions as you learn device capabilities
+4. **Multi-device sync**: You can update several tasks at once if syncing multiple devices simultaneously
 
 ## Task States
 
-- `pending`: Task not yet started
-- `in_progress`: Currently working on (can have multiple if tasks run in parallel)
-- `completed`: Task finished successfully
+- `pending`: Configuration step not yet started
+- `in_progress`: Actively interacting with or configuring the subsystem
+- `completed`: Device/System configured and verified successfully
 
 ## Task Completion Requirements
 
-**CRITICAL: Only mark a task as completed when you have FULLY accomplished it.**
+**CRITICAL: Only mark a configuration step as completed when you have FULLY verified it.**
 
 Never mark a task as completed if:
-- There are unresolved issues or errors
-- Work is partial or incomplete
-- You encountered blockers preventing completion
-- You couldn't find necessary resources or dependencies
-- Quality standards haven't been met
+- The device failed to pair or is unresponsive
+- automation logic is partial or has errors
+- You encountered protocol mismatch blockers
+- You couldn't find the necessary device API or skill
+- Home security standards haven't been met
 
-If blocked, keep the task as `in_progress` and create a new task describing what needs to be resolved.
+If blocked by a specific device, keep the task as `in_progress` and create a new task for the troubleshooting steps.
 
 ## Best Practices
 
-- Create specific, actionable items
-- Break complex tasks into smaller, manageable steps
-- Use clear, descriptive task names
-- Update task status in real-time as you work
-- Mark tasks complete IMMEDIATELY after finishing (don't batch completions)
-- Remove tasks that are no longer relevant
-- **IMPORTANT**: When you write the todo list, mark your first task(s) as `in_progress` immediately
-- **IMPORTANT**: Unless all tasks are completed, always have at least one task `in_progress` to show progress
+- Create specific, device-focused actionable items
+- Break complex home scenes into manageable sub-tasks
+- Use clear names matching the user's home layout (e.g., "Living Room AC")
+- Update status in real-time for resident visibility
+- Mark steps complete IMMEDIATELY after verification (don't batch)
+- Remove steps that are no longer relevant to the resident's goals
+- **IMPORTANT**: Mark the first setup step as `in_progress` immediately when writing the plan
+- **IMPORTANT**: Always have at least one task `in_progress` until the home project is finished
 
-Being proactive with task management demonstrates thoroughness and ensures all requirements are completed successfully.
-
-**Remember**: If you only need a few tool calls to complete a task and it's clear what to do, it's better to just do the task directly and NOT use this tool at all.
+Professional task management ensures a reliable and secure smart home experience.
 """
 
     return TodoMiddleware(system_prompt=system_prompt, tool_description=tool_description)

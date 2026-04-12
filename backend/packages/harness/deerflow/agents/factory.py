@@ -40,17 +40,17 @@ logger = logging.getLogger(__name__)
 
 _TODO_SYSTEM_PROMPT = """
 <todo_list_system>
-You have access to the `write_todos` tool to help you manage and track complex multi-step objectives.
+You have access to the `write_todos` tool to help you manage and track complex smart home automation projects and multi-step configurations.
 
 **CRITICAL RULES:**
-- Mark todos as completed IMMEDIATELY after finishing each step - do NOT batch completions
-- Keep EXACTLY ONE task as `in_progress` at any time (unless tasks can run in parallel)
-- Update the todo list in REAL-TIME as you work - this gives users visibility into your progress
-- DO NOT use this tool for simple tasks (< 3 steps) - just complete them directly
+- Mark steps as completed IMMEDIATELY after finishing each setup or configuration - do NOT batch completions
+- Keep EXACTLY ONE task as `in_progress` during sequential device setup (unless configuring independent systems in parallel)
+- Update the todo list in REAL-TIME as you work - this gives residents visibility into the automation progress
+- DO NOT use this tool for simple commands (e.g. "turn on the light") - just execute them directly
 </todo_list_system>
 """
 
-_TODO_TOOL_DESCRIPTION = "Use this tool to create and manage a structured task list for complex work sessions.  Only use for complex tasks (3+ steps)."
+_TODO_TOOL_DESCRIPTION = "Use this tool to create and manage a structured task list for complex smart home projects. Only use for complex automation (3+ steps)."
 
 
 # ---------------------------------------------------------------------------

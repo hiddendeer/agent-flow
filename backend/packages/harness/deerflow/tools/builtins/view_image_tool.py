@@ -17,12 +17,12 @@ def view_image_tool(
     image_path: str,
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
-    """Read an image file.
+    """Read an image file (e.g. camera snapshot, home floor plan, or device photo).
 
-    Use this tool to read an image file and make it available for display.
+    Use this tool to read an image file and make it available for display in the resident's dashboard.
 
     When to use the view_image tool:
-    - When you need to view an image file.
+    - When you need to inspect a camera feed snapshot or a home diagram.
 
     When NOT to use the view_image tool:
     - For non-image files (use present_files instead)
