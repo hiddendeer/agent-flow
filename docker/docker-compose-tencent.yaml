@@ -9,13 +9,13 @@ services:
         # 也可以手动指定为 mirrors.cloud.tencent.com (公网)
         - APT_MIRROR=mirrors.tencentyun.com
         - UV_INDEX_URL=https://mirrors.tencentyun.com/pypi/simple
-        # 默认 UV 镜像是 ghcr.io，国内无法拉取，建议先将其拉取并推送到您的 CCR 仓库
-        # 或者使用其他国内可访问的代理镜像，例如：
-        # - UV_IMAGE=swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/astral-sh/uv:0.7.20
-        - UV_IMAGE=ghcr.io/astral-sh/uv:0.7.20
+        # 使用 pip 安装 uv 而不是拉取 ghcr.io 镜像（国内环境推荐）
+        - UV_INSTALL_METHOD=pip
+        # 保险起见，将 UV_IMAGE 指向已拉取的镜像，防止 Docker 引擎尝试连接 ghcr.io
+        - UV_IMAGE=python:3.12-slim-bookworm
     container_name: deer-flow-gateway
-    # 替换为您的腾讯云 CCR 仓库路径
-    image: ccr.ccs.tencentyun.com/YOUR_NAMESPACE/deer-flow-gateway:latest
+    # 本地镜像名称
+    image: deer-flow-gateway:latest
     ports:
       - "8001:8001"
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 4"
@@ -51,10 +51,11 @@ services:
       args:
         - APT_MIRROR=mirrors.tencentyun.com
         - UV_INDEX_URL=https://mirrors.tencentyun.com/pypi/simple
-        - UV_IMAGE=ghcr.io/astral-sh/uv:0.7.20
+        - UV_INSTALL_METHOD=pip
+        - UV_IMAGE=python:3.12-slim-bookworm
     container_name: deer-flow-langgraph
-    # 替换为您的腾讯云 CCR 仓库路径
-    image: ccr.ccs.tencentyun.com/YOUR_NAMESPACE/deer-flow-langgraph:latest
+    # 本地镜像名称
+    image: deer-flow-langgraph:latest
     ports:
       - "2024:2024"
     command: sh -c 'cd /app/backend && uv run langgraph dev --no-browser --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker 10'
