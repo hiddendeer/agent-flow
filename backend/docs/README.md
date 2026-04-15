@@ -21,6 +21,7 @@ This directory contains detailed documentation for the DeerFlow backend.
 | [summarization.md](summarization.md) | Context summarization feature |
 | [plan_mode_usage.md](plan_mode_usage.md) | Plan mode with TodoList |
 | [AUTO_TITLE_GENERATION.md](AUTO_TITLE_GENERATION.md) | Automatic title generation |
+| [EXTERNAL_MCP_GUIDE.md](EXTERNAL_MCP_GUIDE.md) | External MCP server development guide with Home Assistant example |
 
 ## Development
 
@@ -39,17 +40,18 @@ This directory contains detailed documentation for the DeerFlow backend.
 
 ```
 docs/
-├── README.md                  # This file
-├── ARCHITECTURE.md            # System architecture
-├── API.md                     # API reference
-├── CONFIGURATION.md           # Configuration guide
-├── SETUP.md                   # Setup instructions
-├── FILE_UPLOAD.md             # File upload feature
-├── PATH_EXAMPLES.md           # Path usage examples
-├── summarization.md           # Summarization feature
-├── plan_mode_usage.md         # Plan mode feature
-├── STREAMING.md               # Token-level streaming design
-├── AUTO_TITLE_GENERATION.md   # Title generation
+├── README.md                      # This file
+├── ARCHITECTURE.md                # System architecture
+├── API.md                         # API reference
+├── CONFIGURATION.md               # Configuration guide
+├── SETUP.md                       # Setup instructions
+├── FILE_UPLOAD.md                 # File upload feature
+├── PATH_EXAMPLES.md               # Path usage examples
+├── summarization.md               # Summarization feature
+├── plan_mode_usage.md             # Plan mode feature
+├── STREAMING.md                   # Token-level streaming design
+├── AUTO_TITLE_GENERATION.md       # Title generation
 ├── TITLE_GENERATION_IMPLEMENTATION.md  # Title implementation details
-└── TODO.md                    # Roadmap and issues
+├── EXTERNAL_MCP_GUIDE.md          # External MCP server development guide
+└── TODO.md                        # Roadmap and issues
 ```
